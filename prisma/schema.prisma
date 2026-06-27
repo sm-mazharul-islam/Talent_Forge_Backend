@@ -1,0 +1,32 @@
+// 1. Tell Prisma your database provider, but DO NOT include a url here!
+datasource db {
+  provider = "postgresql" 
+}
+
+// 2. Configure the client generator to save code directly into your local src folder
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated"
+}
+
+// 3. Keep your structural models exactly the same
+model User {
+  id        String     @id @default(uuid())
+  email     String     @unique
+  name      String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  properties Property[]
+}
+
+model Property {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  price       Float
+  location    String
+  ownerId     String
+  owner       User     @relation(fields: [ownerId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
