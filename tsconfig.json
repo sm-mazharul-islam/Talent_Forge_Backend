@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "outDir": "./dist",
     "rootDir": "./",
     "strict": true,
@@ -12,6 +12,5 @@
     "resolveJsonModule": true,
     "types": ["node"]
   },
-  // Update this block right here 👇
   "include": ["src/**/*", "src/generated/prisma/index.d.ts", "prisma.config.ts"]
 }

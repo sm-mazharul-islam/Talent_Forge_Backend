@@ -36,3 +36,29 @@ export const createProperty = async (
     next(error);
   }
 };
+
+/**
+ * Controller handler to fetch all Property Listings from the database
+ */
+export const getProperties = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    // Fetch all rows from the property table in Supabase
+    const properties = await prisma.property.findMany();
+
+    // Respond back to the client with a 200 OK status
+    res.status(200).json({
+      status: "success",
+      results: properties.length,
+      data: {
+        properties,
+      },
+    });
+  } catch (error) {
+    // Forward any database execution failures down to the global error handler middleware
+    next(error);
+  }
+};
