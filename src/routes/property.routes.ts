@@ -2,21 +2,15 @@ import { Router } from "express";
 import {
   createProperty,
   getProperties,
-} from "../controllers/property.controller.js"; // 1. Import your get controller
-import { createPropertySchema } from "../schemas/property.schema";
-import { validate } from "../middleware/validate.middleware";
+} from "../controllers/property.controller";
+import { requireAuth } from "../middleware/auth.middleware"; // Import the guard
 
 const router = Router();
 
-/**
- * Route: POST /api/properties
- */
-router.post("/", validate(createPropertySchema), createProperty);
+// 🔓 Public Route: Anyone can browse properties
+router.get("/", getProperties);
 
-/**
- * Route: GET /api/properties
- * Fetches all listings along with their respective relationships straight from Supabase
- */
-router.get("/", getProperties); // 2. Add this line here!
+// 🔒 Protected Route: Requires a valid JWT token header to create a property
+router.post("/", requireAuth, createProperty);
 
 export default router;

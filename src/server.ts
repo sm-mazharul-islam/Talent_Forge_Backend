@@ -4,10 +4,10 @@ import app from "./app.js";
 // Import dotenv to read variables inside your local .env file
 import dotenv from "dotenv";
 // Import your configured prisma instance to manage database interactions
-import prisma from "./config/datebase.js";
+import prisma from "./config/datebase";
+dotenv.config();
 
 // Inject the variables written in your .env file straight into Node's `process.env` globally
-dotenv.config();
 
 // Define the port the server will open on. Read it from environment variables, or fallback to 5000
 const PORT = process.env.PORT || 5000;

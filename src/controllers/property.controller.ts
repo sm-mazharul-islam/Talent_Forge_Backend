@@ -1,26 +1,38 @@
-import { Request, Response, NextFunction } from "express";
+import { Response, NextFunction } from "express";
+import { AuthenticatedRequest } from "../middleware/auth.middleware";
 import prisma from "../config/datebase";
 
 /**
  * Controller handler to create a brand new Property Listing in the database
  */
 export const createProperty = async (
-  req: Request,
+  req: AuthenticatedRequest, // 👈 Uses your custom authenticated interface
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    // Extract the validated fields from the request body
-    const { title, description, price, location, ownerId } = req.body;
+    // 1. Extract core data fields from the request body (ownerId removed from body)
+    const { title, description, price, location } = req.body;
 
-    // Use Prisma to insert a new row into the Property table in PostgreSQL
+    // 2. Extract the secure user ID attached by the requireAuth middleware layer
+    const authenticatedUserId = req.user?.userId;
+
+    if (!authenticatedUserId) {
+      res.status(401).json({
+        status: "fail",
+        message: "Authentication context missing. Please log in again.",
+      });
+      return;
+    }
+
+    // 3. Use Prisma to insert a new row into the Property table in PostgreSQL
     const newProperty = await prisma.property.create({
       data: {
         title,
         description,
-        price,
+        price: Number(price), // 👈 Forces dynamic numeric format handling
         location,
-        ownerId,
+        ownerId: authenticatedUserId, // 👈 Securely binds the listing to the logged-in user
       },
     });
 
@@ -41,7 +53,7 @@ export const createProperty = async (
  * Controller handler to fetch all Property Listings from the database
  */
 export const getProperties = async (
-  req: Request,
+  req: AuthenticatedRequest,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
