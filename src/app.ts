@@ -6,6 +6,7 @@ import morgan from "morgan";
 // Import our new property routes mapping
 import propertyRoutes from "./routes/property.routes.js";
 import authRouter from "./routes/auth.route.js";
+import applicationRoutes from "./routes/application.route";
 const app = express();
 
 app.use(helmet());
@@ -24,6 +25,7 @@ app.get("/health", (req, res) => {
 // Register the modular Property API routes under the /api/properties prefix 👇
 app.use("/api/properties", propertyRoutes);
 app.use("/api/auth", authRouter);
+app.use("/api/applications", applicationRoutes);
 
 app.use(
   (

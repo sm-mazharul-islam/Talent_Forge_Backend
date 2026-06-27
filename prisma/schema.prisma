@@ -4,18 +4,19 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "postgresql" // 👈 Clean and simple. No 'url' here anymore!
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String?
-  password  String   // 👈 MAKE SURE THIS LINE IS EXACTLY HERE
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(uuid())
+  email      String   @unique
+  name       String?
+  password   String   
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
   
-  properties Property[]
+  properties   Property[]
+  applications Application[]
 }
 
 model Property {
@@ -27,5 +28,21 @@ model Property {
   ownerId     String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  owner       User     @relation(fields: [ownerId], references: [id])
+  
+  owner        User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  applications Application[]
+}
+
+model Application {
+  id          String   @id @default(uuid())
+  coverLetter String?
+  status      String   @default("pending")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  applicantId String
+  applicant   User     @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+
+  propertyId  String
+  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 }

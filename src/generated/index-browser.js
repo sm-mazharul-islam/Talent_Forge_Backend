@@ -140,6 +140,16 @@ exports.Prisma.PropertyScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.ApplicationScalarFieldEnum = {
+  id: 'id',
+  coverLetter: 'coverLetter',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  applicantId: 'applicantId',
+  propertyId: 'propertyId'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -158,7 +168,8 @@ exports.Prisma.NullsOrder = {
 
 exports.Prisma.ModelName = {
   User: 'User',
-  Property: 'Property'
+  Property: 'Property',
+  Application: 'Application'
 };
 
 /**

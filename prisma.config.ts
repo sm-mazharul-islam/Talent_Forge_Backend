@@ -8,6 +8,6 @@ export default defineConfig({
   },
   datasource: {
     // Prisma 7 handles the database URL completely right here!
-    url: process.env["DATABASE_URL"],
+    url: process.env.DATABASE_URL, // 👈 Prisma v7 picks up your connection here
   },
 });
