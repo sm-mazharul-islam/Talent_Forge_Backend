@@ -6,15 +6,12 @@ import prisma from "../config/datebase";
  * Controller handler to create a brand new Property Listing in the database
  */
 export const createProperty = async (
-  req: AuthenticatedRequest, // 👈 Uses your custom authenticated interface
+  req: AuthenticatedRequest,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    // 1. Extract core data fields from the request body (ownerId removed from body)
     const { title, description, price, location } = req.body;
-
-    // 2. Extract the secure user ID attached by the requireAuth middleware layer
     const authenticatedUserId = req.user?.userId;
 
     if (!authenticatedUserId) {
@@ -25,71 +22,21 @@ export const createProperty = async (
       return;
     }
 
-    // 3. Use Prisma to insert a new row into the Property table in PostgreSQL
     const newProperty = await prisma.property.create({
       data: {
         title,
         description,
-        price: Number(price), // 👈 Forces dynamic numeric format handling
+        price: Number(price),
         location,
-        ownerId: authenticatedUserId, // 👈 Securely binds the listing to the logged-in user
+        ownerId: authenticatedUserId,
       },
     });
 
-    // Respond back to the client with a 201 Created status and the newly created row data
     res.status(201).json({
       status: "success",
       data: {
         property: newProperty,
       },
-    });
-  } catch (error) {
-    // Forward any database execution failures down to the global error handler middleware
-    next(error);
-  }
-};
-
-/**
- * Withdraw/Delete an application (Candidate action only)
- */
-export const withdrawApplication = async (
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction,
-): Promise<void> => {
-  try {
-    const { id } = req.params; // Get application UUID from URL params
-    const applicantId = req.user?.userId;
-
-    // 1. Find the application record
-    const application = await prisma.application.findUnique({
-      where: { id },
-    });
-
-    if (!application) {
-      res
-        .status(404)
-        .json({ status: "fail", message: "Application not found." });
-      return;
-    }
-
-    // 2. Ensure only the applicant can delete it
-    if (application.applicantId !== applicantId) {
-      res.status(403).json({
-        status: "fail",
-        message: "Forbidden. You can only withdraw your own applications.",
-      });
-      return;
-    }
-
-    // 3. Delete from database
-    await prisma.application.delete({
-      where: { id },
-    });
-
-    res.status(200).json({
-      status: "success",
-      message: "Application withdrawn successfully.",
     });
   } catch (error) {
     next(error);
@@ -105,10 +52,8 @@ export const getProperties = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    // Fetch all rows from the property table in Supabase
     const properties = await prisma.property.findMany();
 
-    // Respond back to the client with a 200 OK status
     res.status(200).json({
       status: "success",
       results: properties.length,
@@ -117,7 +62,54 @@ export const getProperties = async (
       },
     });
   } catch (error) {
-    // Forward any database execution failures down to the global error handler middleware
+    next(error);
+  }
+};
+
+/**
+ * Controller handler to delete a property listing (Owner action only)
+ */
+export const deleteProperty = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const { id } = req.params; // Get property ID from URL parameter
+    const ownerId = req.user?.userId;
+
+    // 1. Find the property record to verify existence
+    const property = await prisma.property.findUnique({
+      where: { id },
+    });
+
+    if (!property) {
+      res.status(404).json({
+        status: "fail",
+        message: "Property listing not found.",
+      });
+      return;
+    }
+
+    // 2. Strict Security: Enforce that only the resource owner can delete it
+    if (property.ownerId !== ownerId) {
+      res.status(403).json({
+        status: "fail",
+        message: "Forbidden. You can only delete your own listings.",
+      });
+      return;
+    }
+
+    // 3. Delete the resource (Cascades automatically to dependent applications)
+    await prisma.property.delete({
+      where: { id },
+    });
+
+    res.status(200).json({
+      status: "success",
+      message: "Listing and all associated applications removed successfully.",
+    });
+  } catch (error) {
     next(error);
   }
 };

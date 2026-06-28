@@ -1,12 +1,11 @@
 import { Request, Response, NextFunction } from "express";
-// 1. Import 'ZodObject' instead of the deprecated 'AnyZodObject'
-import { ZodObject, ZodError } from "zod";
+// 1. Using ZodTypeAny as the modern standard to support flexible compilation objects
+import { ZodTypeAny, ZodError } from "zod";
 
 /**
  * A reusable higher-order middleware function that wraps around a Zod validation schema
- * We use ZodObject<any> to accept any configured Zod layout shape.
  */
-export const validate = (schema: ZodObject<any>) => {
+export const validate = (schema: ZodTypeAny) => {
   return async (
     req: Request,
     res: Response,
@@ -27,9 +26,9 @@ export const validate = (schema: ZodObject<any>) => {
         // If it's a Zod validation error, intercept it and return a 400 Bad Request
         res.status(400).json({
           status: "fail",
-          // 2. Changed error.errors to error.issues for Zod v4 compatibility
+          // 2. Using error.issues for clean Zod compatibility mapping
           errors: error.issues.map((issue) => ({
-            field: issue.path[1], // Tells the user exactly which field failed (e.g., 'price')
+            field: issue.path[1] || issue.path[0], // Gracefully handle varying path array depths
             message: issue.message,
           })),
         });
