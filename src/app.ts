@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
+import { globalErrorHandler } from "./middleware/error.middleware";
 
 // Import our new property routes mapping
 import propertyRoutes from "./routes/property.routes.js";
@@ -26,6 +27,9 @@ app.get("/health", (req, res) => {
 app.use("/api/properties", propertyRoutes);
 app.use("/api/auth", authRouter);
 app.use("/api/applications", applicationRoutes);
+
+// 🛡️ The Global Error Handler MUST be the last middleware mounted
+app.use(globalErrorHandler);
 
 app.use(
   (
