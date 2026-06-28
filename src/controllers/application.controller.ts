@@ -119,6 +119,74 @@ export const getMyApplications = async (
 };
 
 /**
+ * Update the status of an incoming application (Recruiter/Owner action only)
+ */
+export const updateApplicationStatus = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const { applicationId, status } = req.body;
+    const ownerId = req.user?.userId;
+
+    if (!ownerId) {
+      res
+        .status(401)
+        .json({ status: "fail", message: "Unauthorized context." });
+      return;
+    }
+
+    // 1. Validate the incoming status value
+    const validStatuses = ["pending", "accepted", "rejected"];
+    if (!validStatuses.includes(status)) {
+      res.status(400).json({
+        status: "fail",
+        message: "Invalid status. Options are: pending, accepted, or rejected.",
+      });
+      return;
+    }
+
+    // 2. Find the application and verify that the logged-in user actually owns the property
+    const application = await prisma.application.findUnique({
+      where: { id: applicationId },
+      include: { property: true },
+    });
+
+    if (!application) {
+      res
+        .status(404)
+        .json({ status: "fail", message: "Application record not found." });
+      return;
+    }
+
+    if (application.property.ownerId !== ownerId) {
+      res.status(403).json({
+        status: "fail",
+        message:
+          "Forbidden. You do not have permission to manage applications for this listing.",
+      });
+      return;
+    }
+
+    // 3. Perform the status modification update
+    const updatedApplication = await prisma.application.update({
+      where: { id: applicationId },
+      data: { status },
+    });
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        application: updatedApplication,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * Controller handler to fetch all applications submitted TO listings owned by the logged-in user
  */
 export const getIncomingApplications = async (

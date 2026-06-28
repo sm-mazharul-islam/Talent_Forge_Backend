@@ -3,6 +3,7 @@ import {
   applyToListing,
   getMyApplications,
   getIncomingApplications,
+  updateApplicationStatus,
 } from "../controllers/application.controller";
 import { requireAuth } from "../middleware/auth.middleware";
 
@@ -14,5 +15,7 @@ router.post("/apply", requireAuth, applyToListing);
 // Dashboard data routes
 router.get("/my-submissions", requireAuth, getMyApplications); // For candidates
 router.get("/incoming", requireAuth, getIncomingApplications); // For owners/recruiters
+// 🔄 Update Application Status (Gate-secured)
+router.patch("/status", requireAuth, updateApplicationStatus);
 
 export default router;

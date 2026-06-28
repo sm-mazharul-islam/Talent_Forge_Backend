@@ -50,6 +50,53 @@ export const createProperty = async (
 };
 
 /**
+ * Withdraw/Delete an application (Candidate action only)
+ */
+export const withdrawApplication = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const { id } = req.params; // Get application UUID from URL params
+    const applicantId = req.user?.userId;
+
+    // 1. Find the application record
+    const application = await prisma.application.findUnique({
+      where: { id },
+    });
+
+    if (!application) {
+      res
+        .status(404)
+        .json({ status: "fail", message: "Application not found." });
+      return;
+    }
+
+    // 2. Ensure only the applicant can delete it
+    if (application.applicantId !== applicantId) {
+      res.status(403).json({
+        status: "fail",
+        message: "Forbidden. You can only withdraw your own applications.",
+      });
+      return;
+    }
+
+    // 3. Delete from database
+    await prisma.application.delete({
+      where: { id },
+    });
+
+    res.status(200).json({
+      status: "success",
+      message: "Application withdrawn successfully.",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * Controller handler to fetch all Property Listings from the database
  */
 export const getProperties = async (
